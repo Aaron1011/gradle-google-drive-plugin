@@ -1,7 +1,8 @@
 package ru.kinca.gradle.googledrive
 
-import org.gradle.api.internal.provider.DefaultPropertyState
+import org.gradle.api.internal.provider.AbstractProvider
 import org.gradle.api.provider.PropertyState
+import org.gradle.api.provider.Provider
 
 /**
  * Property state that is instantiated with a default value. If no value was set
@@ -9,14 +10,12 @@ import org.gradle.api.provider.PropertyState
  *
  * @author Valentin Naumov
  */
-class PropertyStateWithDefaultValue<T>
+class PropertyStateWithDefaultValue<T> implements PropertyState<T>
 {
     private static final NULL_PROVIDER = { null }
 
     private final Closure<T> defaultValueProvider
-
-    @Delegate
-    private final PropertyState<T> delegate
+    private Provider<? extends T> provider;
 
     /**
      * Creates the property state with default value of {@code null}.
@@ -36,7 +35,7 @@ class PropertyStateWithDefaultValue<T>
         Closure<T> defaultValueProvider)
     {
         this.defaultValueProvider = defaultValueProvider
-        this.delegate = new DefaultPropertyState()
+        this.provider = null
     }
 
     /**
@@ -48,7 +47,13 @@ class PropertyStateWithDefaultValue<T>
     @Override
     T get()
     {
-        delegate.present ? delegate.get() : defaultValueProvider.call()
+        if (provider != null) {
+            T value = provider.getOrNull();
+            if (value != null) {
+                return value;
+            }
+        }
+        return defaultValueProvider.call()
     }
 
     /**
@@ -61,6 +66,27 @@ class PropertyStateWithDefaultValue<T>
     @Override
     T getOrNull()
     {
-        delegate.present ? delegate.get() : defaultValueProvider.call()
+        get()
+    }
+
+    @Override
+    boolean isPresent() {
+        return get() != null
+    }
+
+    @Override
+    void set(T value) {
+        this.provider = new AbstractProvider<T>() {
+
+            @Override
+            T getOrNull() {
+                return value
+            }
+        }
+    }
+
+    @Override
+    void set(Provider<? extends T> provider) {
+        this.provider = provider
     }
 }
