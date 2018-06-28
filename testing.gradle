@@ -16,7 +16,7 @@ task integrationTest(type: Test) {
     classpath = sourceSets.integrationTest.runtimeClasspath
     mustRunAfter test
 }
-check.dependsOn integrationTest
+//check.dependsOn integrationTest
 
 task functionalTest(type: Test) {
     description = 'Runs the functional tests.'
@@ -25,7 +25,7 @@ task functionalTest(type: Test) {
     classpath = sourceSets.functionalTest.runtimeClasspath
     mustRunAfter integrationTest
 }
-check.dependsOn functionalTest
+//check.dependsOn functionalTest
 
 [ 'codenarcFunctionalTest', 'codenarcIntegrationTest', 'codenarcTest' ].each {
     "$it"() {
